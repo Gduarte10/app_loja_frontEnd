@@ -1,10 +1,9 @@
 import 'package:app_loja/data/repository/produto_repository.dart';
-import 'package:app_loja/data/repository/user_repository.dart';
 import 'package:app_loja/presentation/pages/home_page.dart';
 import 'package:app_loja/presentation/viewmodels/produto_viewmodel.dart';
-import 'package:app_loja/presentation/viewmodels/user_viewmodel.dart';
 import 'package:app_loja/services/api_service.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 void main() {
   runApp(
@@ -12,9 +11,6 @@ void main() {
       providers: [
         ChangeNotifierProvider(
           create: (_) => ProdutoViewmodel(ProdutoRepository(ApiService())),
-        ),
-        ChangeNotifierProvider(
-          create: (_) => UserViewmodel(UserRepository(ApiService())),
         ),
       ],
       child: MyApp(),
