@@ -1,4 +1,5 @@
-import 'package:app_loja/services/api_service.dart';
+import 'package:app_loja_frontend/data/model/produto_model.dart';
+import '../../services/api_service.dart';
 
 class ProdutoRepository {
   final ApiService apiService;
@@ -13,11 +14,11 @@ class ProdutoRepository {
     }
   }
 
-  // Future<void> addProduto(String token, Produto produto) async {
-  //   try {
-  //     await apiService.cadastrarProduto(token, produto);
-  //   } catch (e) {
-  //     throw Exception('Erro ao cadastrar produto: $e');
-  //   }
-  // }
+  Future<void> addProduto(String token, Produto produto) async {
+    try {
+      await apiService.cadastrarProduto(token, produto);
+    } catch (e) {
+      throw Exception('Erro ao cadastrar produto: $e');
+    }
+  }
 }

@@ -1,46 +1,46 @@
-import 'package:app_loja/data/repository/user_repository.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
+import '../../data/repository/user_repository.dart';
 
-class UserViewmodel with ChangeNotifier {
+class UserViewModel with ChangeNotifier {
   final UserRepository _userRepository;
 
   String? _token;
   String? _username;
-  String? _errorMessage; // Corrigido de _erroMessage para _errorMessage
+  String? _errorMessage;
   bool _isLoading = false;
 
-  UserViewmodel(this._userRepository);
+  UserViewModel(this._userRepository);
 
   String? get token => _token;
   String? get username => _username;
-  String? get errorMessage => _errorMessage; // Corrigido para errorMessage
+  String? get errorMessage => _errorMessage;
   bool get isLoading => _isLoading;
   bool get isLoggedIn => _token != null;
 
   Future<bool> login(String username, String password) async {
     if (username.isEmpty || password.isEmpty) {
-      _errorMessage =
-          'Username or password cannot be empty.'; // Mensagem de erro caso os campos estejam vazios
-      notifyListeners();
+      _errorMessage = 'Por favor, preencha todos os campos.';
+      _notifyListenersAfterBuild();
       return false;
     }
+
     _isLoading = true;
     _errorMessage = null;
-    notifyListeners();
+    _notifyListenersAfterBuild();
 
     try {
       _token = await _userRepository.login(username, password);
       _username = username;
-      _isLoading = false;
-      notifyListeners();
+      _notifyListenersAfterBuild();
       return true;
     } on Exception catch (e) {
       _token = null;
       _username = null;
       _errorMessage = e.toString();
-      _isLoading = false;
-      notifyListeners();
       return false;
+    } finally {
+      _isLoading = false;
+      _notifyListenersAfterBuild();
     }
   }
 
@@ -48,12 +48,79 @@ class UserViewmodel with ChangeNotifier {
     _token = null;
     _username = null;
     _errorMessage = null;
-    notifyListeners();
+    _notifyListenersAfterBuild();
   }
 
   void clearErrorMessage() {
-    // Corrigido para clearErrorMessage
     _errorMessage = null;
-    notifyListeners();
+    _notifyListenersAfterBuild();
+  }
+
+  Future<Map<String, dynamic>?> fetchClienteData() async {
+    if (_token == null || _username == null) {
+      _errorMessage = 'Usuário não está logado.';
+      _notifyListenersAfterBuild();
+      return null;
+    }
+
+    _isLoading = true;
+    _notifyListenersAfterBuild();
+
+    try {
+      Map<String, dynamic> clienteData = await _userRepository
+          .getClientePorUsername(_token!, _username!);
+
+      return clienteData;
+    } catch (e) {
+      _errorMessage = e.toString();
+      _notifyListenersAfterBuild();
+      return null;
+    } finally {
+      _isLoading = false;
+      _notifyListenersAfterBuild();
+    }
+  }
+
+  Future<int?> getClienteId() async {
+    if (_token == null || _username == null) {
+      _errorMessage = 'Usuário não está logado.';
+      _notifyListenersAfterBuild();
+      print("Erro: Usuário não está logado."); // Debug
+      return null;
+    }
+
+    _isLoading = true;
+    _notifyListenersAfterBuild();
+    print("Buscando clienteId para $_username..."); // Debug
+
+    try {
+      Map<String, dynamic> clienteData = await _userRepository
+          .getClientePorUsername(_token!, _username!);
+
+      print("Dados do cliente recebidos: $clienteData"); // Debug
+
+      if (clienteData.containsKey('id')) {
+        int clienteId = clienteData['id'];
+        print("Cliente ID encontrado: $clienteId"); // Debug
+        return clienteId;
+      } else {
+        print("Erro: 'id' não encontrado nos dados retornados."); // Debug
+        return null;
+      }
+    } catch (e) {
+      _errorMessage = 'Erro ao buscar clienteId: $e';
+      print("Erro ao buscar clienteId: $e"); // Debug
+      _notifyListenersAfterBuild();
+      return null;
+    } finally {
+      _isLoading = false;
+      _notifyListenersAfterBuild();
+    }
+  }
+
+  void _notifyListenersAfterBuild() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      notifyListeners();
+    });
   }
 }
